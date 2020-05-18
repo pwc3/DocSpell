@@ -15,6 +15,13 @@ class SpellCheckOperation {
         spellChecker.setLanguage("en")
     }
 
+    // If we are running in the terminal, this will return the size of the window.
+    private func windowSize() -> (columns: Int, rows: Int) {
+        var w = winsize()
+        _ = ioctl(STDOUT_FILENO, TIOCGWINSZ, &w)
+        return (columns: Int(w.ws_col), rows: Int(w.ws_row))
+    }
+
     func run() {
         module.docs.forEach {
             spellCheck(Element(dictionary: $0.docsDictionary).findDocumentation())
@@ -57,14 +64,14 @@ class SpellCheckOperation {
                 let misspelling = (comment as NSString).substring(with: range)
                 print("\(file):\(line):\(column): warning: Documentation of \(name) contains misspelling \(misspelling)")
 
-                let (line, highlight) = findLine(containing: range, in: (comment as NSString))
-                print(line)
-                print(highlight)
+                let context = self.context(for: range, in: comment as NSString)
+                print(context.line)
+                print(context.highlight)
             }
         }
     }
 
-    private func findLine(containing misspellingRange: NSRange, in string: NSString) -> (String, String) {
+    private func context(for misspellingRange: NSRange, in string: NSString) -> (line: String, highlight: String) {
         // Search backward from the beginning of the string up to and including the misspelling for a newline.
         let backwardSearchRange = NSRange(location: 0, length: misspellingRange.location + misspellingRange.length)
         let rangeOfPreviousNewline = string.rangeOfCharacter(from: CharacterSet.newlines, options: .backwards, range: backwardSearchRange)
@@ -85,13 +92,36 @@ class SpellCheckOperation {
                 ? string.length
                 : rangeOfNextNewline.location
 
+        // Construct the full line containing the misspelling.
         let rangeOfLine = NSRange(location: startOfLine, length: locationOfNextNewline - startOfLine)
-        let fullLine = string.substring(with: rangeOfLine)
+        var fullLine = string.substring(with: rangeOfLine) as NSString
 
-        let leadingSpaces = misspellingRange.location - rangeOfLine.location
-        let length = misspellingRange.length
+        // Construct a highlight line to underline the misspelling (e.g., ^~~~~~)
+        let highlightLeading = misspellingRange.location - rangeOfLine.location
+        let highlightLength = misspellingRange.length
+        var highlight = [String(repeating: " ", count: highlightLeading), "^", String(repeating: "~", count: highlightLength - 1)].joined() as NSString
 
-        let highlight = [String(repeating: " ", count: leadingSpaces), "^", String(repeating: "~", count: length - 1)].joined()
-        return (fullLine, highlight)
+        // If our line is longer than the width of the window...
+        let windowWidth = windowSize().columns
+        if windowWidth > 0, fullLine.length > windowWidth {
+
+            // Is our highlight beyond the end of the first line?
+            if highlightLeading + highlightLength > windowWidth {
+                // Chop off the front to keep the highlight on the first line.
+                let leading = (highlightLeading + highlightLength + 1) - (windowWidth / 2)
+                fullLine = fullLine.substring(from: min(leading, fullLine.length)) as NSString
+                highlight = highlight.substring(from: min(leading, highlight.length)) as NSString
+
+                // Chop off the end to fit it all on one line
+                fullLine = fullLine.substring(to: min(windowWidth, fullLine.length)) as NSString
+                highlight = highlight.substring(to: min(windowWidth, highlight.length)) as NSString
+            }
+            else {
+                // Just chop off the end of the strings.
+                return (fullLine.substring(to: min(windowWidth, fullLine.length - 1)), highlight.substring(to: min(windowWidth, highlight.length - 1)))
+            }
+        }
+
+        return (fullLine as String, highlight as String)
     }
 }
