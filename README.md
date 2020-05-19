@@ -1,3 +1,3 @@
 # DocSpell
 
-A description of this package.
+This package is under development.
