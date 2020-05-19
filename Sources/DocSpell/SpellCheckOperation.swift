@@ -24,7 +24,9 @@ class SpellCheckOperation {
 
     func run() {
         module.docs.forEach {
+            print($0)
             spellCheck(Element(dictionary: $0.docsDictionary).findDocumentation())
+            print("--------------------------------------------------------------------------------")
         }
     }
 

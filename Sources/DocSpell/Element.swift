@@ -148,6 +148,16 @@ struct Element {
         }
         return offset
     }
+
+    /// Doc comment begins at this byte offset in the file.
+    var docLength: Int64? {
+        return dictionary["key.doclength"] as? Int64
+    }
+
+    /// Doc comment length in bytes.
+    var docOffset: Int64? {
+        return dictionary["key.docoffset"] as? Int64
+    }
 }
 
 extension Element {
