@@ -25,7 +25,7 @@
 
 import Foundation
 
-public extension Misspelling {
+extension Misspelling {
 
     struct Context {
 

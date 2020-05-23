@@ -25,28 +25,28 @@
 
 import Foundation
 
-public struct Misspelling: Codable {
+struct Misspelling: Codable {
 
     /// The body of the documentation comment.
-    public var docComment: String
+    var docComment: String
 
     /// The byte offset in the source file where the documentation comment begins.
-    public var docOffset: Int64
+    var docOffset: Int64
 
     /// The length, in bytes, of the documentation comment in the source file.
-    public var docLength: Int64
+    var docLength: Int64
 
     /// The range of the misspelling in the `docComment` string.
-    public var range: NSRange
+    var range: NSRange
 
-    public var misspelling: String {
+    var misspelling: String {
         return (docComment as NSString).substring(with: range)
     }
 }
 
 extension Misspelling: CustomStringConvertible {
 
-    public var description: String {
+    var description: String {
         let encoder = JSONEncoder()
         encoder.outputFormatting = [.prettyPrinted, .sortedKeys]
 

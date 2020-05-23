@@ -23,7 +23,7 @@
 //  DEALINGS IN THE SOFTWARE.
 //
 
-import DocSpellFramework
+@testable import DocSpellFramework
 import XCTest
 
 class DocSpellTests: XCTestCase {

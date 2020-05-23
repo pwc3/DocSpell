@@ -34,5 +34,5 @@ public struct SpellCheckResult {
         return docs.file.path
     }
 
-    public var misspellings: [Misspelling]
+    var misspellings: [Misspelling]
 }
