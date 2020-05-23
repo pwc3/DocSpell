@@ -1,5 +1,5 @@
 //
-//  FileHandleOutputStream.swift
+//  SpellCheckResult.swift
 //  DocSpell
 //
 //  Copyright (c) 2020 Anodized Software, Inc.
@@ -24,22 +24,15 @@
 //
 
 import Foundation
+import SourceKittenFramework
 
-struct FileHandleOutputStream: TextOutputStream {
+public struct SpellCheckResult {
 
-    private let handle: FileHandle
+    public var docs: SwiftDocs
 
-    init(handle: FileHandle) {
-        self.handle = handle
+    public var file: String! {
+        return docs.file.path
     }
 
-    func write(_ string: String) {
-        guard let data = string.data(using: .utf8) else {
-            return
-        }
-        handle.write(data)
-    }
+    public var misspellings: [Misspelling]
 }
-
-var stdout = FileHandleOutputStream(handle: .standardOutput)
-var stderr = FileHandleOutputStream(handle: .standardError)

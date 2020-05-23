@@ -27,21 +27,21 @@ import AppKit
 import Foundation
 import SourceKittenFramework
 
-class SpellCheckOperation {
+public class SpellCheckOperation {
 
-    let module: Module
+    private let docs: [SwiftDocs]
 
     private let spellChecker: NSSpellChecker
 
-    init(module: Module) {
-        self.module = module
+    public init(docs: [SwiftDocs]) {
+        self.docs = docs
 
         spellChecker = NSSpellChecker.shared
         spellChecker.setLanguage("en")
     }
 
-    func run() -> [SpellCheckResult] {
-        module.docs.map { doc -> SpellCheckResult in
+    public func run() -> [SpellCheckResult] {
+        docs.map { doc -> SpellCheckResult in
             SpellCheckResult(docs: doc, misspellings: spellCheck(Element(dictionary: doc.docsDictionary).findDocumentation()))
         }
     }

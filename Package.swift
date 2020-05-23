@@ -31,19 +31,32 @@ let package = Package(
     platforms: [
         .macOS(.v10_15),
     ],
+    products: [
+        .library(
+            name: "DocSpellFramework",
+            targets: ["DocSpellFramework"]),
+        .executable(
+            name: "DocSpell",
+            targets: ["DocSpellCLI"])
+    ],
     dependencies: [
         .package(url: "https://github.com/apple/swift-argument-parser", .upToNextMinor(from: "0.0.6")),
         .package(url: "https://github.com/jpsim/SourceKitten", .upToNextMinor(from: "0.29.0")),
     ],
     targets: [
         .target(
-            name: "DocSpell",
+            name: "DocSpellFramework",
+            dependencies: [
+                .product(name: "SourceKittenFramework", package: "SourceKitten"),
+            ]),
+        .target(
+            name: "DocSpellCLI",
             dependencies: [
                 .product(name: "ArgumentParser", package: "swift-argument-parser"),
-                .product(name: "SourceKittenFramework", package: "SourceKitten"),
+                "DocSpellFramework"
             ]),
         .testTarget(
             name: "DocSpellTests",
-            dependencies: ["DocSpell"]),
+            dependencies: ["DocSpellFramework"]),
     ]
 )

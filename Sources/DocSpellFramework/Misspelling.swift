@@ -1,5 +1,5 @@
 //
-//  SpellCheckResult.swift
+//  Misspelling.swift
 //  DocSpell
 //
 //  Copyright (c) 2020 Anodized Software, Inc.
@@ -24,15 +24,44 @@
 //
 
 import Foundation
-import SourceKittenFramework
 
-struct SpellCheckResult {
+public struct Misspelling: Codable {
 
-    var docs: SwiftDocs
+    /// The symbol with the misspelled documentation.
+    var symbol: String
 
-    var file: String! {
-        return docs.file.path
+    /// The path of the source file.
+    var file: String
+
+    /// The line number of the declaration with the misspelled documentation.
+    var symbolLine: Int64
+
+    /// The column of the declaration with the misspelled documentation.
+    var symbolColumn: Int64
+
+    /// The body of the documentation comment.
+    var docComment: String
+
+    /// The byte offset in the source file where the documentation comment begins.
+    var docOffset: Int64
+
+    /// The length, in bytes, of the documentation comment in the source file.
+    var docLength: Int64
+
+    /// The range of the misspelling in the `docComment` string.
+    var range: NSRange
+
+    var misspelling: String {
+        return (docComment as NSString).substring(with: range)
     }
+}
 
-    var misspellings: [Misspelling]
+extension Misspelling: CustomStringConvertible {
+
+    public var description: String {
+        let encoder = JSONEncoder()
+        encoder.outputFormatting = [.prettyPrinted, .sortedKeys]
+
+        return String(data: try! encoder.encode(self), encoding: .utf8)!
+    }
 }

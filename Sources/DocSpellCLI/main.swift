@@ -24,36 +24,60 @@
 //
 
 import ArgumentParser
+import DocSpellFramework
 import Foundation
 import SourceKittenFramework
 
 protocol DocSpellCommand {
 
-    func loadModule() -> Module?
+    func loadDocs() -> Result<[SwiftDocs], DocSpellError>
 
     var options: DocSpell.Options { get }
+}
+
+enum DocSpellError: Error, CustomStringConvertible {
+
+    case docFailed
+
+    case readFailed(path: String)
+
+    var description: String {
+        switch self {
+        case .docFailed:
+            return "Unable to generate documentation"
+
+        case .readFailed(let path):
+            return "Unable to read file at \"\(path)\""
+        }
+    }
 }
 
 struct DocSpell: ParsableCommand {
 
     static var configuration = CommandConfiguration(
+        commandName: "DocSpell",
         abstract: "Spell check inline documentation",
-        subcommands: [SwiftPackage.self, XcodeBuild.self])
+        subcommands: [SwiftPackage.self, XcodeBuild.self, SingleFiles.self])
 
-    static func run(_ command: DocSpellCommand) {
-        run(module: command.loadModule(), verbose: command.options.verbose)
+    @discardableResult
+    static func run(_ command: DocSpellCommand) -> Result<[SpellCheckResult], DocSpellError> {
+        switch command.loadDocs() {
+        case .success(let docs):
+            return .success(run(docs: docs, verbose: command.options.verbose))
+
+        case .failure(let error):
+            fputs("Error: \(error)", stderr)
+            return .failure(error)
+        }
     }
 
-    static func run(module: Module?, verbose: Bool) {
-        guard let module = module else {
-            print("Could not build module", to: &stderr)
-            return
-        }
-
-        let op = SpellCheckOperation(module: module)
+    @discardableResult
+    static func run(docs: [SwiftDocs], verbose: Bool) -> [SpellCheckResult] {
+        let op = SpellCheckOperation(docs: docs)
         let results = op.run()
 
         print(SpellCheckResultFormatter.format(results: results, verbose: verbose).joined(separator: "\n"))
+        return results
     }
 }
 
@@ -76,14 +100,17 @@ extension DocSpell {
                 help: "Path of the directory containing the Package.swift file.")
         var path: String
 
-        @Argument(help: "Additional arguments to pass to `swift build`.")
-        var arguments: [String]
-
         @OptionGroup()
         var options: Options
 
-        func loadModule() -> Module? {
-            Module(spmArguments: arguments, spmName: name, inPath: path)
+        @Argument(help: "Additional arguments to pass to `swift build`.")
+        var arguments: [String]
+
+        func loadDocs() -> Result<[SwiftDocs], DocSpellError> {
+            guard let module = Module(spmArguments: arguments, spmName: name, inPath: path) else {
+                return .failure(.docFailed)
+            }
+            return .success(module.docs)
         }
 
         func run() {
@@ -103,14 +130,54 @@ extension DocSpell {
                 help: "Path to run `xcodebuild` from.")
         var path: String
 
+        @OptionGroup()
+        var options: Options
+
         @Argument(help: "The arguments necessary to pass in to `xcodebuild` to build this module.")
         var arguments: [String]
+
+        func loadDocs() -> Result<[SwiftDocs], DocSpellError> {
+            guard let module = Module(xcodeBuildArguments: arguments, name: name, inPath: path) else {
+                return .failure(.docFailed)
+            }
+            return .success(module.docs)
+        }
+
+        func run() {
+            DocSpell.run(self)
+        }
+    }
+
+    struct SingleFiles: ParsableCommand, DocSpellCommand {
 
         @OptionGroup()
         var options: Options
 
-        func loadModule() -> Module? {
-            Module(xcodeBuildArguments: arguments, name: name, inPath: path)
+        @Argument(help: "The files to check.")
+        var arguments: [String]
+
+        static func create(arguments: [String]) -> SingleFiles {
+            var value = SingleFiles()
+            value.arguments = arguments
+            return value
+        }
+
+        func loadDocs() -> Result<[SwiftDocs], DocSpellError> {
+            return Result(catching: { try _loadDocs() }).mapError({ $0 as! DocSpellError })
+        }
+
+        private func _loadDocs() throws -> [SwiftDocs] {
+            return try arguments.map { filename in
+                guard let file = File(path: filename) else {
+                    throw DocSpellError.readFailed(path: filename)
+                }
+
+                guard let docs = SwiftDocs(file: file, arguments: []) else {
+                    throw DocSpellError.docFailed
+                }
+
+                return docs
+            }
         }
 
         func run() {

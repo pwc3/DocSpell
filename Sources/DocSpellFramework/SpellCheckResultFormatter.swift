@@ -25,15 +25,15 @@
 
 import Foundation
 
-struct SpellCheckResultFormatter {
+public struct SpellCheckResultFormatter {
 
-    static func format(results: [SpellCheckResult], verbose: Bool) -> [String] {
+    public static func format(results: [SpellCheckResult], verbose: Bool) -> [String] {
         return results.flatMap {
             return format(result: $0, verbose: verbose)
         }
     }
 
-    static func format(result: SpellCheckResult, verbose: Bool) -> [String] {
+    private static func format(result: SpellCheckResult, verbose: Bool) -> [String] {
         if result.misspellings.isEmpty {
             return []
         }
@@ -48,7 +48,7 @@ struct SpellCheckResultFormatter {
         }
     }
 
-    static func format(misspelling: Misspelling, verbose: Bool) -> [String] {
+    private static func format(misspelling: Misspelling, verbose: Bool) -> [String] {
         let prefix: [String] =
             verbose
                 ? [misspelling.description]
