@@ -1,6 +1,6 @@
 //
 //  main.swift
-//  DocSpell
+//  DocSpellCLI
 //
 //  Copyright (c) 2020 Anodized Software, Inc.
 //

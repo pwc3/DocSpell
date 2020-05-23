@@ -1,6 +1,6 @@
 //
 //  Element.swift
-//  DocSpell
+//  DocSpellFramework
 //
 //  Copyright (c) 2020 Anodized Software, Inc.
 //
