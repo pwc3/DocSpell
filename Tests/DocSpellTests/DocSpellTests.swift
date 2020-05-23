@@ -23,24 +23,24 @@
 //  DEALINGS IN THE SOFTWARE.
 //
 
-//@testable import DocSpell
-//import XCTest
-//
-//class DocSpellTests: XCTestCase {
-//    func testReadFixture() {
-//        XCTAssertNoThrow(try Fixture.contents(of: "TestFile1.swift"))
-//    }
-//
-//    func testDocFixture() {
-//        let path = Fixture.path(for: "TestFile1.swift")
-//        let command = DocSpell.SingleFiles.create(arguments: [path])
-//
-//        switch DocSpell.run(command) {
-//        case .success:
-//            break
-//
-//        case .failure(let error):
-//            XCTFail("\(error)")
-//        }
-//    }
-//}
+import DocSpellFramework
+import XCTest
+
+class DocSpellTests: XCTestCase {
+    func testReadFixture() {
+        XCTAssertNoThrow(try Fixture.contents(of: "TestFile1.swift"))
+    }
+
+    func testDocFixture() {
+        let path = Fixture.path(for: "TestFile1.swift")
+        let spellChecker = SpellChecker(input: .singleFiles(filenames: [path]))
+
+        switch spellChecker.run() {
+        case .success:
+            break
+
+        case .failure(let error):
+            XCTFail("\(error)")
+        }
+    }
+}
