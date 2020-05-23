@@ -28,30 +28,30 @@ import Foundation
 public struct Misspelling: Codable {
 
     /// The symbol with the misspelled documentation.
-    var symbol: String
+    public var symbol: String
 
     /// The path of the source file.
-    var file: String
+    public var file: String
 
     /// The line number of the declaration with the misspelled documentation.
-    var symbolLine: Int64
+    public var symbolLine: Int64
 
     /// The column of the declaration with the misspelled documentation.
-    var symbolColumn: Int64
+    public var symbolColumn: Int64
 
     /// The body of the documentation comment.
-    var docComment: String
+    public var docComment: String
 
     /// The byte offset in the source file where the documentation comment begins.
-    var docOffset: Int64
+    public var docOffset: Int64
 
     /// The length, in bytes, of the documentation comment in the source file.
-    var docLength: Int64
+    public var docLength: Int64
 
     /// The range of the misspelling in the `docComment` string.
-    var range: NSRange
+    public var range: NSRange
 
-    var misspelling: String {
+    public var misspelling: String {
         return (docComment as NSString).substring(with: range)
     }
 }

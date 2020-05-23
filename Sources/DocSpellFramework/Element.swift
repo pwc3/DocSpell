@@ -28,7 +28,7 @@ import SourceKittenFramework
 
 struct Element {
 
-    var dictionary: [String: SourceKitRepresentable]
+    private var dictionary: [String: SourceKitRepresentable]
 
     init(dictionary: [String: SourceKitRepresentable]) {
         self.dictionary = dictionary

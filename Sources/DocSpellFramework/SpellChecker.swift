@@ -1,5 +1,5 @@
 //
-//  SpellCheckOperation.swift
+//  SpellChecker.swift
 //  DocSpell
 //
 //  Copyright (c) 2020 Anodized Software, Inc.
@@ -27,32 +27,34 @@ import AppKit
 import Foundation
 import SourceKittenFramework
 
-public class SpellCheckOperation {
+public class SpellChecker {
 
-    private let docs: [SwiftDocs]
+    private let input: Input
 
     private let spellChecker: NSSpellChecker
 
-    public init(docs: [SwiftDocs]) {
-        self.docs = docs
+    public init(input: Input) {
+        self.input = input
 
         spellChecker = NSSpellChecker.shared
         spellChecker.setLanguage("en")
     }
 
-    public func run() -> [SpellCheckResult] {
-        docs.map { doc -> SpellCheckResult in
-            SpellCheckResult(docs: doc, misspellings: spellCheck(Element(dictionary: doc.docsDictionary).findDocumentation()))
+    public func run() -> Result<[SpellCheckResult], Error> {
+        return input.loadDocs().map { docs in
+            docs.map { doc -> SpellCheckResult in
+                SpellCheckResult(docs: doc, misspellings: spellCheck(Element(dictionary: doc.docsDictionary).findDocumentation()))
+            }
         }
     }
 
-    func spellCheck(_ documentation: [Element]) -> [Misspelling] {
+    private func spellCheck(_ documentation: [Element]) -> [Misspelling] {
         documentation.flatMap {
             spellCheck($0)
         }
     }
 
-    func spellCheck(_ documentation: Element) -> [Misspelling] {
+    private func spellCheck(_ documentation: Element) -> [Misspelling] {
         guard
             let symbol = documentation.docName,
             let file = documentation.docFile,

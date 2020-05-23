@@ -26,30 +26,12 @@
 import ArgumentParser
 import DocSpellFramework
 import Foundation
-import SourceKittenFramework
 
 protocol DocSpellCommand {
 
-    func loadDocs() -> Result<[SwiftDocs], DocSpellError>
+    var input: SpellChecker.Input { get }
 
     var options: DocSpell.Options { get }
-}
-
-enum DocSpellError: Error, CustomStringConvertible {
-
-    case docFailed
-
-    case readFailed(path: String)
-
-    var description: String {
-        switch self {
-        case .docFailed:
-            return "Unable to generate documentation"
-
-        case .readFailed(let path):
-            return "Unable to read file at \"\(path)\""
-        }
-    }
 }
 
 struct DocSpell: ParsableCommand {
@@ -59,25 +41,17 @@ struct DocSpell: ParsableCommand {
         abstract: "Spell check inline documentation",
         subcommands: [SwiftPackage.self, XcodeBuild.self, SingleFiles.self])
 
-    @discardableResult
-    static func run(_ command: DocSpellCommand) -> Result<[SpellCheckResult], DocSpellError> {
-        switch command.loadDocs() {
-        case .success(let docs):
-            return .success(run(docs: docs, verbose: command.options.verbose))
+    static func run(_ command: DocSpellCommand) {
+        let spellChecker = SpellChecker(input: command.input)
+
+        switch spellChecker.run() {
+        case .success(let results):
+            let output = SpellCheckResultFormatter.format(results: results, verbose: command.options.verbose)
+            print(output.joined(separator: "\n"))
 
         case .failure(let error):
-            fputs("Error: \(error)", stderr)
-            return .failure(error)
+            fputs("DocSpell failed: \(error)", stderr)
         }
-    }
-
-    @discardableResult
-    static func run(docs: [SwiftDocs], verbose: Bool) -> [SpellCheckResult] {
-        let op = SpellCheckOperation(docs: docs)
-        let results = op.run()
-
-        print(SpellCheckResultFormatter.format(results: results, verbose: verbose).joined(separator: "\n"))
-        return results
     }
 }
 
@@ -106,11 +80,8 @@ extension DocSpell {
         @Argument(help: "Additional arguments to pass to `swift build`.")
         var arguments: [String]
 
-        func loadDocs() -> Result<[SwiftDocs], DocSpellError> {
-            guard let module = Module(spmArguments: arguments, spmName: name, inPath: path) else {
-                return .failure(.docFailed)
-            }
-            return .success(module.docs)
+        var input: SpellChecker.Input {
+            .swiftPackage(name: name, path: path, arguments: arguments)
         }
 
         func run() {
@@ -136,11 +107,8 @@ extension DocSpell {
         @Argument(help: "The arguments necessary to pass in to `xcodebuild` to build this module.")
         var arguments: [String]
 
-        func loadDocs() -> Result<[SwiftDocs], DocSpellError> {
-            guard let module = Module(xcodeBuildArguments: arguments, name: name, inPath: path) else {
-                return .failure(.docFailed)
-            }
-            return .success(module.docs)
+        var input: SpellChecker.Input {
+            .xcodeBuild(name: name, path: path, arguments: arguments)
         }
 
         func run() {
@@ -154,30 +122,10 @@ extension DocSpell {
         var options: Options
 
         @Argument(help: "The files to check.")
-        var arguments: [String]
+        var filenames: [String]
 
-        static func create(arguments: [String]) -> SingleFiles {
-            var value = SingleFiles()
-            value.arguments = arguments
-            return value
-        }
-
-        func loadDocs() -> Result<[SwiftDocs], DocSpellError> {
-            return Result(catching: { try _loadDocs() }).mapError({ $0 as! DocSpellError })
-        }
-
-        private func _loadDocs() throws -> [SwiftDocs] {
-            return try arguments.map { filename in
-                guard let file = File(path: filename) else {
-                    throw DocSpellError.readFailed(path: filename)
-                }
-
-                guard let docs = SwiftDocs(file: file, arguments: []) else {
-                    throw DocSpellError.docFailed
-                }
-
-                return docs
-            }
+        var input: SpellChecker.Input {
+            .singleFiles(filenames: filenames)
         }
 
         func run() {
