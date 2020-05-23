@@ -25,10 +25,10 @@
 
 import Foundation
 
-/// This is a single-line doc string.
+/// This is a single-line doc strng with a misspelling.
 class TestFile1 {
 
-    /// This is a multi-line doc string.
-    /// It contains multiple lines.
+    /// This is a multi-line doc string. It contains a mispelng.
+    /// Here is a second line. It contains a mispelng.
     var foo: String?
 }

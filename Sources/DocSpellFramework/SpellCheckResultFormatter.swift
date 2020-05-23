@@ -58,7 +58,7 @@ public struct SpellCheckResultFormatter {
         let cols = TerminalSize()?.columns
         let context = misspelling.context(maxLineLength: cols)
         return prefix + [
-            "\(misspelling.file):\(misspelling.symbolLine):\(misspelling.symbolColumn): warning: Documentation of \(misspelling.symbol) contains misspelling \"\(misspelling.misspelling)\"",
+            "warning: Misspelling of \"\(misspelling.misspelling)\"",
             context.sourceLine,
             context.highlightLine
         ]

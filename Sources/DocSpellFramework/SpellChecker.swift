@@ -56,10 +56,6 @@ public class SpellChecker {
 
     private func spellCheck(_ documentation: Element) -> [Misspelling] {
         guard
-            let symbol = documentation.docName,
-            let file = documentation.docFile,
-            let symbolLine = documentation.docLine,
-            let symbolColumn = documentation.docColumn,
             let docComment = documentation.documentationComment,
             let docOffset = documentation.docOffset,
             let docLength = documentation.docLength
@@ -82,11 +78,7 @@ public class SpellChecker {
             }
 
             return (0..<result.numberOfRanges).map { i -> Misspelling in
-                return Misspelling(symbol: symbol,
-                                   file: file,
-                                   symbolLine: symbolLine,
-                                   symbolColumn: symbolColumn,
-                                   docComment: docComment,
+                return Misspelling(docComment: docComment,
                                    docOffset: docOffset,
                                    docLength: docLength,
                                    range: result.range(at: i))

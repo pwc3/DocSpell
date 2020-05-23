@@ -27,18 +27,6 @@ import Foundation
 
 public struct Misspelling: Codable {
 
-    /// The symbol with the misspelled documentation.
-    public var symbol: String
-
-    /// The path of the source file.
-    public var file: String
-
-    /// The line number of the declaration with the misspelled documentation.
-    public var symbolLine: Int64
-
-    /// The column of the declaration with the misspelled documentation.
-    public var symbolColumn: Int64
-
     /// The body of the documentation comment.
     public var docComment: String
 

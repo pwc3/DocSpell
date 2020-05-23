@@ -31,16 +31,25 @@ class DocSpellTests: XCTestCase {
         XCTAssertNoThrow(try Fixture.contents(of: "TestFile1.swift"))
     }
 
-    func testDocFixture() {
+    func testDocFixture() throws {
         let path = Fixture.path(for: "TestFile1.swift")
         let spellChecker = SpellChecker(input: .singleFiles(filenames: [path]))
 
-        switch spellChecker.run() {
-        case .success:
-            break
+        let results = try spellChecker.run().get()
 
-        case .failure(let error):
-            XCTFail("\(error)")
+        // One result, meaning one file had misspellings
+        guard results.count == 1, let result = results.first else {
+            XCTFail("Incorrect number of results, expected 1, got \(results.count)")
+            return
         }
+
+        guard result.misspellings.count == 3 else {
+            XCTFail("Incorrect number of misspellings found, expected 3, got \(result.misspellings.count)")
+            return
+        }
+
+        XCTAssertEqual(result.misspellings[0].misspelling, "strng")
+        XCTAssertEqual(result.misspellings[1].misspelling, "mispelng")
+        XCTAssertEqual(result.misspellings[2].misspelling, "mispelng")
     }
 }
