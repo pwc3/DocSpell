@@ -29,6 +29,6 @@ import Foundation
 class TestFile1 {
 
     /// This is a multi-line doc string. It contains a mispelng.
-    /// Here is a second line. It contains a mispelng.
+    /// Here is a second line. It cntans two mispelngs.
     var foo: String?
 }

@@ -36,34 +36,28 @@ public extension SpellChecker {
 
         case singleFiles(filenames: [String])
 
-        internal func loadDocs() -> Result<[SwiftDocs], Error> {
+        internal func loadDocs() throws -> [SwiftDocs] {
             switch self {
 
             case .swiftPackage(let name, let path, let arguments):
-                return load(from: Module(spmArguments: arguments, spmName: name, inPath: path))
+                return try load(from: Module(spmArguments: arguments, spmName: name, inPath: path))
 
             case .xcodeBuild(let name, let path, let arguments):
-                return load(from: Module(xcodeBuildArguments: arguments, name: name, inPath: path))
+                return try load(from: Module(xcodeBuildArguments: arguments, name: name, inPath: path))
 
             case .singleFiles(let filenames):
-                return load(from: filenames)
+                return try load(from: filenames)
             }
         }
 
-        private func load(from module: Module?) -> Result<[SwiftDocs], Error> {
+        private func load(from module: Module?) throws -> [SwiftDocs] {
             guard let docs = module?.docs else {
-                return .failure(DocSpellError.docFailed)
+                throw DocSpellError.docFailed
             }
-            return .success(docs)
+            return docs
         }
 
-        private func load(from filenames: [String]) -> Result<[SwiftDocs], Error> {
-            return Result(catching: { try _load(from: filenames) })
-        }
-
-        // Make this a throwing function to simplify raising an error from the map closure.
-        // Any failure causes the whole thing to fail.
-        private func _load(from filenames: [String]) throws -> [SwiftDocs] {
+        private func load(from filenames: [String]) throws -> [SwiftDocs] {
             return try filenames.map { filename in
                 guard let file = File(path: filename) else {
                     throw DocSpellError.readFailed(path: filename)

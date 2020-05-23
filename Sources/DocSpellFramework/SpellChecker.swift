@@ -41,11 +41,11 @@ public class SpellChecker {
     }
 
     public func run() -> Result<[SpellCheckResult], Error> {
-        return input.loadDocs().map { docs in
-            docs.map { doc -> SpellCheckResult in
-                SpellCheckResult(docs: doc, misspellings: spellCheck(Element(dictionary: doc.docsDictionary).findDocumentation()))
+        return Result(catching: {
+            try input.loadDocs().map { doc in
+                try SpellCheckResult(docs: doc, misspellings: spellCheck(Element(dictionary: doc.docsDictionary).findDocumentation()))
             }
-        }
+        })
     }
 
     private func spellCheck(_ documentation: [Element]) -> [Misspelling] {

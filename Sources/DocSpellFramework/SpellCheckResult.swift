@@ -28,11 +28,22 @@ import SourceKittenFramework
 
 public struct SpellCheckResult {
 
-    public var docs: SwiftDocs
+    var docs: SwiftDocs
+
+    var issues: [Issue]
+
+    @available(*, deprecated, message: "Will be replaced by issues")
+    var misspellings: [Misspelling]
 
     public var file: String! {
         return docs.file.path
     }
 
-    var misspellings: [Misspelling]
+    init(docs: SwiftDocs, misspellings: [Misspelling]) throws {
+        self.docs = docs
+        self.misspellings = misspellings
+
+        let locator = IssueLocator(file: docs.file.path!, misspellings: misspellings)
+        self.issues = try locator.run().get()
+    }
 }

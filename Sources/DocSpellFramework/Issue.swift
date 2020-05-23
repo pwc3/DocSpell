@@ -1,5 +1,5 @@
 //
-//  Misspelling.swift
+//  Issue.swift
 //  DocSpellFramework
 //
 //  Copyright (c) 2020 Anodized Software, Inc.
@@ -24,37 +24,12 @@
 //
 
 import Foundation
-import SourceKittenFramework
 
-struct Misspelling: Codable {
+public struct Issue {
 
-    /// The body of the documentation comment.
-    var docComment: String
+    var misspelling: String
 
-    /// The byte offset in the source file where the documentation comment begins.
-    var docOffset: Int64
+    var line: UInt
 
-    /// The length, in bytes, of the documentation comment in the source file.
-    var docLength: Int64
-
-    /// The range of the misspelling in the `docComment` string.
-    var range: NSRange
-
-    var misspelling: String {
-        return (docComment as NSString).substring(with: range)
-    }
-
-    var byteRange: ByteRange {
-        return ByteRange(location: ByteCount(docOffset), length: ByteCount(docLength))
-    }
-}
-
-extension Misspelling: CustomStringConvertible {
-
-    var description: String {
-        let encoder = JSONEncoder()
-        encoder.outputFormatting = [.prettyPrinted, .sortedKeys]
-
-        return String(data: try! encoder.encode(self), encoding: .utf8)!
-    }
+    var column: UInt
 }
