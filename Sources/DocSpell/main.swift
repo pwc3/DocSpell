@@ -51,8 +51,13 @@ struct DocSpell: ParsableCommand {
         }
 
         let op = SpellCheckOperation(module: module)
-        print(SpellCheckResultFormatter.format(results: op.run()).joined(separator: "\n"))
+        let results = op.run()
+
+        print(SpellCheckResultFormatter.format(results: results, verbose: verbose).joined(separator: "\n"))
     }
+}
+
+extension DocSpell {
 
     struct Options: ParsableArguments {
         @Flag(name: .shortAndLong, help: "Show verbose output.")

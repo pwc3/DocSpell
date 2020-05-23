@@ -27,23 +27,40 @@ import Foundation
 
 struct SpellCheckResultFormatter {
 
-    static func format(results: [SpellCheckResult]) -> [String] {
-        return results.compactMap(format(result:))
+    static func format(results: [SpellCheckResult], verbose: Bool) -> [String] {
+        return results.flatMap {
+            return format(result: $0, verbose: verbose)
+        }
     }
 
-    static func format(result: SpellCheckResult) -> String? {
-        return result.misspellings.isEmpty
-            ? nil
-            : result.misspellings.map(format(misspelling:)).joined(separator: "\n")
+    static func format(result: SpellCheckResult, verbose: Bool) -> [String] {
+        if result.misspellings.isEmpty {
+            return []
+        }
+
+        let prefix: [String] =
+            verbose
+                ? [result.docs.description]
+                : []
+
+        return prefix + result.misspellings.flatMap {
+            format(misspelling: $0, verbose: verbose)
+        }
     }
 
-    static func format(misspelling: Misspelling) -> String {
+    static func format(misspelling: Misspelling, verbose: Bool) -> [String] {
+        let prefix: [String] =
+            verbose
+                ? [misspelling.description]
+                : []
+
+
         let cols = TerminalSize()?.columns
         let context = misspelling.context(maxLineLength: cols)
-        return [
+        return prefix + [
             "\(misspelling.file):\(misspelling.symbolLine):\(misspelling.symbolColumn): warning: Documentation of \(misspelling.symbol) contains misspelling \"\(misspelling.misspelling)\"",
             context.sourceLine,
             context.highlightLine
-        ].joined(separator: "\n")
+        ]
     }
 }
