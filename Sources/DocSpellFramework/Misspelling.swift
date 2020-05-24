@@ -35,6 +35,13 @@ public struct Misspelling: Equatable {
     public var line: UInt
 
     public var column: UInt
+
+    public init(word: String, file: String, line: UInt, column: UInt) {
+        self.word = word
+        self.file = file
+        self.line = line
+        self.column = column
+    }
 }
 
 extension Misspelling {

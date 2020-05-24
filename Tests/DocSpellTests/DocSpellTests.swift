@@ -23,7 +23,7 @@
 //  DEALINGS IN THE SOFTWARE.
 //
 
-@testable import DocSpellFramework
+import DocSpellFramework
 import XCTest
 
 class DocSpellTests: XCTestCase {
@@ -33,7 +33,7 @@ class DocSpellTests: XCTestCase {
 
     func testDocFixture() throws {
         let path = Fixture.path(for: "TestFile1.swift")
-        let spellChecker = SpellChecker(input: .singleFiles(filenames: [path]))
+        let spellChecker = SpellChecker(input: .singleFiles(filenames: [path]), whitelist: Whitelist(words: ["whargarbl"]))
 
         let misspellings = try spellChecker.run().get()
 

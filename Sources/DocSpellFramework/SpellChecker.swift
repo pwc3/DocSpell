@@ -38,10 +38,13 @@ public class SpellChecker {
 
     private let input: Input
 
+    private let whitelist: Whitelist?
+
     private let spellChecker: NSSpellChecker
 
-    public init(input: Input) {
+    public init(input: Input, whitelist: Whitelist? = nil) {
         self.input = input
+        self.whitelist = whitelist
 
         spellChecker = NSSpellChecker.shared
         spellChecker.setLanguage("en")
@@ -109,6 +112,11 @@ public class SpellChecker {
 
                 // The misspelled word.
                 let misspelling = (docComment as NSString).substring(with: range)
+
+                // Ignore whitelisted words
+                if whitelist?.contains(misspelling) == true {
+                    return nil
+                }
 
                 // The byte range of the misspelling in the doc comment.
                 guard let misspellingByteRangeInDocComment = docCommentView.NSRangeToByteRange(range) else {

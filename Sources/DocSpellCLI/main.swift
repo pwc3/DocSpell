@@ -30,6 +30,8 @@ import Foundation
 protocol DocSpellCommand {
 
     var input: SpellChecker.Input { get }
+
+    var options: DocSpell.Options { get }
 }
 
 struct DocSpell: ParsableCommand {
@@ -39,8 +41,9 @@ struct DocSpell: ParsableCommand {
         abstract: "Spell check inline documentation",
         subcommands: [SwiftPackage.self, XcodeBuild.self, SingleFiles.self])
 
-    static func run(_ command: DocSpellCommand) {
-        let spellChecker = SpellChecker(input: command.input)
+    static func run(_ command: DocSpellCommand) throws {
+        let spellChecker = SpellChecker(input: command.input,
+                                        whitelist: try Whitelist.load(fromFile: command.options.whitelist))
 
         switch spellChecker.run() {
         case .success(let misspellings):
@@ -54,6 +57,18 @@ struct DocSpell: ParsableCommand {
 }
 
 extension DocSpell {
+
+    struct Options: ParsableArguments {
+
+        enum OptionsError: Error {
+            case invalidExtension
+        }
+
+        @Option(name: .shortAndLong,
+                default: nil,
+                help: "Whitelist file (must have .plist or .json extension)")
+        var whitelist: String?
+    }
 
     struct SwiftPackage: ParsableCommand, DocSpellCommand {
 
@@ -70,12 +85,15 @@ extension DocSpell {
         @Argument(help: "Additional arguments to pass to `swift build`.")
         var arguments: [String]
 
+        @OptionGroup()
+        var options: Options
+
         var input: SpellChecker.Input {
             .swiftPackage(name: name, path: path, arguments: arguments)
         }
 
-        func run() {
-            DocSpell.run(self)
+        func run() throws {
+            try DocSpell.run(self)
         }
     }
 
@@ -98,8 +116,11 @@ extension DocSpell {
             .xcodeBuild(name: name, path: path, arguments: arguments)
         }
 
-        func run() {
-            DocSpell.run(self)
+        @OptionGroup()
+        var options: Options
+
+        func run() throws {
+            try DocSpell.run(self)
         }
     }
 
@@ -112,8 +133,11 @@ extension DocSpell {
             .singleFiles(filenames: filenames)
         }
 
-        func run() {
-            DocSpell.run(self)
+        @OptionGroup()
+        var options: Options
+
+        func run() throws {
+            try DocSpell.run(self)
         }
     }
 }

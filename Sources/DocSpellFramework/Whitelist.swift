@@ -1,6 +1,6 @@
 //
-//  TestFile1.swift
-//  DocSpellTests
+//  Whitelist.swift
+//  DocSpellFramework
 //
 //  Copyright (c) 2020 Anodized Software, Inc.
 //
@@ -25,25 +25,38 @@
 
 import Foundation
 
-/// This is a single-line doc strng with a misspelling.
-class TestFile1 {
+public struct Whitelist: Codable {
 
-    /// This is a multi-line doc string. It contains a mispelng.
-    /// Here is a second line. It cntans two mispelngs.
-    var foo: String?
+    enum WhitelistError: Error {
+        case invalidExtension
+    }
 
-    /**
-     This is a multi-line doc string using a different commnt stle.
-     There are two mspelngs in the prvous line and two on this line.
-     */
-    var bar: Int?
+    public var words: [String]
 
-    /**
-     * This is a multi-line doc string with astrsks at the strt of the line.
-     * There are misspellings on oth lines.
-     */
-    var baz: Int?
+    public init(words: [String]) {
+        self.words = words
+    }
 
-    /// This is a doc string with a whitelisted spelling error whargarbl
-    func qux() { }
+    public func contains(_ word: String) -> Bool {
+        return words.first(where: {
+            $0.compare(word, options: .caseInsensitive) == .orderedSame
+        }) != nil
+    }
+
+    public static func load(fromFile path: String?) throws -> Whitelist? {
+        return try path.flatMap { try load(from: URL(fileURLWithPath: $0)) }
+    }
+
+    public static func load(from url: URL) throws -> Whitelist? {
+        switch url.pathExtension.lowercased() {
+        case "json":
+            return try JSONDecoder().decode(Whitelist.self, from: try Data(contentsOf: url))
+
+        case "plist":
+            return try PropertyListDecoder().decode(Whitelist.self, from: try Data(contentsOf: url))
+
+        default:
+            throw WhitelistError.invalidExtension
+        }
+    }
 }
