@@ -41,7 +41,7 @@ class DocSpellTests: XCTestCase {
             Misspelling(word: "strng",    file: path, line: 28, column: 31),
             Misspelling(word: "mispelng", file: path, line: 31, column: 56),
             Misspelling(word: "cntans",   file: path, line: 32, column: 35),
-            Misspelling(word: "mispelng", file: path, line: 32, column: 46)
+            Misspelling(word: "mispelngs", file: path, line: 32, column: 46)
         ])
     }
 }

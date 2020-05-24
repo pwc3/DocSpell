@@ -33,6 +33,7 @@ public class SpellChecker {
         case encodingError
         case noFilePath
         case missingData
+        case internalError
     }
 
     private let input: Input
@@ -71,49 +72,63 @@ public class SpellChecker {
         return try spellCheck(elements: elements, inView: StringView(fileString), ofFileAtPath: path)
     }
 
-    private func spellCheck(elements: [Element], inView view: StringView, ofFileAtPath path: String) throws -> [Misspelling] {
+    private func spellCheck(elements: [Element], inView view: StringView, ofFileAtPath filePath: String) throws -> [Misspelling] {
         return try elements.flatMap {
-            try spellCheck(element: $0, inView: view, ofFileAtPath: path)
+            try spellCheck(element: $0, inView: view, ofFileAtPath: filePath)
         }
     }
 
-    private func spellCheck(element: Element, inView view: StringView, ofFileAtPath path: String) throws -> [Misspelling] {
-        guard
-            let rawDocCommentString = element.documentationComment,
-            let docOffset = element.docOffset,
-            let docLength = element.docLength
-        else {
+    private func spellCheck(element: Element, inView fileView: StringView, ofFileAtPath filePath: String) throws -> [Misspelling] {
+        // SourceKit reports the byte range of the doc comment in the source file
+        guard let docCommentByteRangeInSourceFile = element.docCommentByteRange else {
             throw SpellCheckerError.missingData
         }
 
-        let rawDocCommentByteRange = ByteRange(location: ByteCount(docOffset), length: ByteCount(docLength))
-        let rawDocCommentView = StringView(rawDocCommentString)
+        // Get the full doc comment from the source file.
+        guard let docComment = fileView.substringWithByteRange(docCommentByteRangeInSourceFile) else {
+            throw SpellCheckerError.internalError
+        }
 
+        // Make a StringView of the full doc comment to convert from NSRange to a byte range.
+        let docCommentView = StringView(docComment)
+
+        // Spell check the full doc comment.
         let types: NSTextCheckingResult.CheckingType = [.spelling]
-        let results = spellChecker.check(rawDocCommentString,
-                                         range: NSRange(location: 0, length: rawDocCommentString.count),
+        let results = spellChecker.check(docComment,
+                                         range: NSRange(location: 0, length: docComment.count),
                                          types: types.rawValue,
                                          options: [.orthography: NSOrthography.defaultOrthography(forLanguage: "en")],
                                          inSpellDocumentWithTag: 0,
                                          orthography: nil,
                                          wordCount: nil)
+
         return results.flatMap { result in
             return (0..<result.numberOfRanges).compactMap { index -> Misspelling? in
+                // The range of the misspelling.
                 let range = result.range(at: index)
-                let word = (rawDocCommentString as NSString).substring(with: range)
 
-                guard let byteRangeOfMisspellingInDocComment = rawDocCommentView.NSRangeToByteRange(range) else {
+                // The misspelled word.
+                let misspelling = (docComment as NSString).substring(with: range)
+
+                // The byte range of the misspelling in the doc comment.
+                guard let misspellingByteRangeInDocComment = docCommentView.NSRangeToByteRange(range) else {
                     return nil
                 }
 
-                let byteOffsetOfMisspellingInFile = rawDocCommentByteRange.location + byteRangeOfMisspellingInDocComment.location
+                // The byte offset of the misspelling in the file is:
+                let byteOffsetOfMisspellingInFile =
+                    // The offset of the doc comment in the source file, plus...
+                    docCommentByteRangeInSourceFile.location +
+                    // ...the offset of the misspelling in the doc comment
+                    misspellingByteRangeInDocComment.location
 
-                guard let location = view.lineAndCharacter(forByteOffset: byteOffsetOfMisspellingInFile) else {
+                // Use the file view to translate the byte offset into line and column.
+                guard let location = fileView.lineAndCharacter(forByteOffset: byteOffsetOfMisspellingInFile) else {
                     return nil
                 }
 
-                return Misspelling(word: word,
-                                   file: path,
+                return Misspelling(word: misspelling,
+                                   file: filePath,
                                    line: UInt(location.line),
                                    column: UInt(location.character))
             }

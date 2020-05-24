@@ -40,24 +40,32 @@ struct Element {
         return d?.map { Element(dictionary: $0)}
     }
 
-    /// Documentation comment (String).
-    var documentationComment: String? {
+    /// Processed doc comment (String).
+    var docComment: String? {
         return dictionary["key.doc.comment"] as? String
     }
 
-    /// Doc comment begins at this byte offset in the file.
-    var docLength: Int64? {
-        return dictionary["key.doclength"] as? Int64
+    /// Source doc comment length in bytes.
+    var docLength: ByteCount? {
+        return (dictionary["key.doclength"] as? Int64).map(ByteCount.init)
     }
 
-    /// Doc comment length in bytes.
-    var docOffset: Int64? {
-        return dictionary["key.docoffset"] as? Int64
+    /// Source doc comment begins at this byte offset in the file.
+    var docOffset: ByteCount? {
+        return (dictionary["key.docoffset"] as? Int64).map(ByteCount.init)
+    }
+
+    var docCommentByteRange: ByteRange? {
+        guard let location = docOffset, let length = docLength else {
+            return nil
+        }
+
+        return ByteRange(location: location, length: length)
     }
 
     func findDocumentation() -> [Element] {
         let base: [Element] =
-            documentationComment != nil
+            docComment != nil
                 ? [self]
                 : []
 
