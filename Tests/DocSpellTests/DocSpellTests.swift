@@ -35,21 +35,13 @@ class DocSpellTests: XCTestCase {
         let path = Fixture.path(for: "TestFile1.swift")
         let spellChecker = SpellChecker(input: .singleFiles(filenames: [path]))
 
-        let results = try spellChecker.run().get()
+        let misspellings = try spellChecker.run().get()
 
-        // One result, meaning one file had misspellings
-        guard results.count == 1, let result = results.first else {
-            XCTFail("Incorrect number of results, expected 1, got \(results.count)")
-            return
-        }
-
-        guard result.misspellings.count == 3 else {
-            XCTFail("Incorrect number of misspellings found, expected 3, got \(result.misspellings.count)")
-            return
-        }
-
-        XCTAssertEqual(result.misspellings[0].misspelling, "strng")
-        XCTAssertEqual(result.misspellings[1].misspelling, "mispelng")
-        XCTAssertEqual(result.misspellings[2].misspelling, "mispelng")
+        XCTAssertEqual(misspellings, [
+            Misspelling(misspelling: "strng", file: Fixture.path(for: "TestFile1.swift"), line: 28, column: 31),
+            Misspelling(misspelling: "mispelng", file: Fixture.path(for: "TestFile1.swift"), line: 31, column: 56),
+            Misspelling(misspelling: "cntans", file: Fixture.path(for: "TestFile1.swift"), line: 32, column: 35),
+            Misspelling(misspelling: "mispelng", file: Fixture.path(for: "TestFile1.swift"), line: 32, column: 46)
+        ])
     }
 }

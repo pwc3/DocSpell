@@ -26,35 +26,24 @@
 import Foundation
 import SourceKittenFramework
 
-struct Misspelling: Codable {
+public struct Misspelling: Equatable {
 
-    /// The body of the documentation comment.
-    var docComment: String
+    public var misspelling: String
 
-    /// The byte offset in the source file where the documentation comment begins.
-    var docOffset: Int64
+    public var file: String
 
-    /// The length, in bytes, of the documentation comment in the source file.
-    var docLength: Int64
+    public var line: UInt
 
-    /// The range of the misspelling in the `docComment` string.
-    var range: NSRange
-
-    var misspelling: String {
-        return (docComment as NSString).substring(with: range)
-    }
-
-    var byteRange: ByteRange {
-        return ByteRange(location: ByteCount(docOffset), length: ByteCount(docLength))
-    }
+    public var column: UInt
 }
 
-extension Misspelling: CustomStringConvertible {
+extension Misspelling {
 
-    var description: String {
-        let encoder = JSONEncoder()
-        encoder.outputFormatting = [.prettyPrinted, .sortedKeys]
+    public var location: String {
+        return "\(file):\(line):\(column)"
+    }
 
-        return String(data: try! encoder.encode(self), encoding: .utf8)!
+    public var message: String {
+        return "\(location): warning: Misspelling of \"\(misspelling)\""
     }
 }

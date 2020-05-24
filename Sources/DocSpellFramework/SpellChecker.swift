@@ -29,6 +29,12 @@ import SourceKittenFramework
 
 public class SpellChecker {
 
+    enum SpellCheckerError: Error {
+        case encodingError
+        case noFilePath
+        case missingData
+    }
+
     private let input: Input
 
     private let spellChecker: NSSpellChecker
@@ -40,48 +46,76 @@ public class SpellChecker {
         spellChecker.setLanguage("en")
     }
 
-    public func run() -> Result<[SpellCheckResult], Error> {
+    public func run() -> Result<[Misspelling], Error> {
         return Result(catching: {
-            try input.loadDocs().map { doc in
-                try SpellCheckResult(docs: doc, misspellings: spellCheck(Element(dictionary: doc.docsDictionary).findDocumentation()))
+            try input.loadDocs().flatMap {
+                try spellCheck(docs: $0)
             }
         })
     }
 
-    private func spellCheck(_ documentation: [Element]) -> [Misspelling] {
-        documentation.flatMap {
-            spellCheck($0)
+    private func spellCheck(docs: SwiftDocs) throws -> [Misspelling] {
+        guard let path = docs.file.path else {
+            throw SpellCheckerError.noFilePath
+        }
+
+        let elements = Element(dictionary: docs.docsDictionary).findDocumentation()
+        return try spellCheck(elements: elements, inFileAtPath: path)
+    }
+
+    private func spellCheck(elements: [Element], inFileAtPath path: String) throws -> [Misspelling] {
+        let fileData = try Data(contentsOf: URL(fileURLWithPath: path))
+        guard let fileString =  String(data: fileData, encoding: .utf8) else {
+            throw SpellCheckerError.encodingError
+        }
+        return try spellCheck(elements: elements, inView: StringView(fileString), ofFileAtPath: path)
+    }
+
+    private func spellCheck(elements: [Element], inView view: StringView, ofFileAtPath path: String) throws -> [Misspelling] {
+        return try elements.flatMap {
+            try spellCheck(element: $0, inView: view, ofFileAtPath: path)
         }
     }
 
-    private func spellCheck(_ documentation: Element) -> [Misspelling] {
+    private func spellCheck(element: Element, inView view: StringView, ofFileAtPath path: String) throws -> [Misspelling] {
         guard
-            let docComment = documentation.documentationComment,
-            let docOffset = documentation.docOffset,
-            let docLength = documentation.docLength
+            let rawDocCommentString = element.documentationComment,
+            let docOffset = element.docOffset,
+            let docLength = element.docLength
         else {
-            return []
+            throw SpellCheckerError.missingData
         }
 
+        let rawDocCommentByteRange = ByteRange(location: ByteCount(docOffset), length: ByteCount(docLength))
+        let rawDocCommentView = StringView(rawDocCommentString)
+
         let types: NSTextCheckingResult.CheckingType = [.spelling]
-        let results = spellChecker.check(docComment,
-                                         range: NSRange(location: 0, length: docComment.count),
+        let results = spellChecker.check(rawDocCommentString,
+                                         range: NSRange(location: 0, length: rawDocCommentString.count),
                                          types: types.rawValue,
                                          options: [.orthography: NSOrthography.defaultOrthography(forLanguage: "en")],
                                          inSpellDocumentWithTag: 0,
                                          orthography: nil,
                                          wordCount: nil)
+        return results.flatMap { result in
+            return (0..<result.numberOfRanges).compactMap { index -> Misspelling? in
+                let range = result.range(at: index)
+                let misspelling = (rawDocCommentString as NSString).substring(with: range)
 
-        return results.flatMap { result -> [Misspelling] in
-            guard result.resultType == .spelling else {
-                return []
-            }
+                guard let byteRangeOfMisspellingInDocComment = rawDocCommentView.NSRangeToByteRange(range) else {
+                    return nil
+                }
 
-            return (0..<result.numberOfRanges).map { i -> Misspelling in
-                return Misspelling(docComment: docComment,
-                                   docOffset: docOffset,
-                                   docLength: docLength,
-                                   range: result.range(at: i))
+                let byteOffsetOfMisspellingInFile = rawDocCommentByteRange.location + byteRangeOfMisspellingInDocComment.location
+
+                guard let location = view.lineAndCharacter(forByteOffset: byteOffsetOfMisspellingInFile) else {
+                    return nil
+                }
+
+                return Misspelling(misspelling: misspelling,
+                                   file: path,
+                                   line: UInt(location.line),
+                                   column: UInt(location.character))
             }
         }
     }

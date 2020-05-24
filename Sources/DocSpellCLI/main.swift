@@ -45,8 +45,8 @@ struct DocSpell: ParsableCommand {
         let spellChecker = SpellChecker(input: command.input)
 
         switch spellChecker.run() {
-        case .success(let results):
-            let output = SpellCheckResultFormatter.format(results: results, verbose: command.options.verbose)
+        case .success(let misspellings):
+            let output = misspellings.map { $0.message }
             print(output.joined(separator: "\n"))
 
         case .failure(let error):
