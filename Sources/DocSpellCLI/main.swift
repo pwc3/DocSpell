@@ -30,8 +30,6 @@ import Foundation
 protocol DocSpellCommand {
 
     var input: SpellChecker.Input { get }
-
-    var options: DocSpell.Options { get }
 }
 
 struct DocSpell: ParsableCommand {
@@ -57,11 +55,6 @@ struct DocSpell: ParsableCommand {
 
 extension DocSpell {
 
-    struct Options: ParsableArguments {
-        @Flag(name: .shortAndLong, help: "Show verbose output.")
-        var verbose: Bool
-    }
-
     struct SwiftPackage: ParsableCommand, DocSpellCommand {
 
         @Option(name: .shortAndLong,
@@ -73,9 +66,6 @@ extension DocSpell {
                 default: FileManager.default.currentDirectoryPath,
                 help: "Path of the directory containing the Package.swift file.")
         var path: String
-
-        @OptionGroup()
-        var options: Options
 
         @Argument(help: "Additional arguments to pass to `swift build`.")
         var arguments: [String]
@@ -101,9 +91,6 @@ extension DocSpell {
                 help: "Path to run `xcodebuild` from.")
         var path: String
 
-        @OptionGroup()
-        var options: Options
-
         @Argument(help: "The arguments necessary to pass in to `xcodebuild` to build this module.")
         var arguments: [String]
 
@@ -117,9 +104,6 @@ extension DocSpell {
     }
 
     struct SingleFiles: ParsableCommand, DocSpellCommand {
-
-        @OptionGroup()
-        var options: Options
 
         @Argument(help: "The files to check.")
         var filenames: [String]
