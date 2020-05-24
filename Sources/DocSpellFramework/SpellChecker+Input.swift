@@ -28,6 +28,13 @@ import SourceKittenFramework
 
 public extension SpellChecker {
 
+    enum InputError: Error {
+
+        case docFailed
+
+        case readFailed
+    }
+
     enum Input {
 
         case swiftPackage(name: String?, path: String, arguments: [String])
@@ -52,7 +59,7 @@ public extension SpellChecker {
 
         private func load(from module: Module?) throws -> [SwiftDocs] {
             guard let docs = module?.docs else {
-                throw DocSpellError.docFailed
+                throw InputError.docFailed
             }
             return docs
         }
@@ -60,11 +67,11 @@ public extension SpellChecker {
         private func load(from filenames: [String]) throws -> [SwiftDocs] {
             return try filenames.map { filename in
                 guard let file = File(path: filename) else {
-                    throw DocSpellError.readFailed(path: filename)
+                    throw InputError.readFailed
                 }
 
                 guard let docs = SwiftDocs(file: file, arguments: []) else {
-                    throw DocSpellError.docFailed
+                    throw InputError.docFailed
                 }
 
                 return docs

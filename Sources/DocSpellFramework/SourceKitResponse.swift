@@ -1,5 +1,5 @@
 //
-//  Element.swift
+//  SourceKitResponse.swift
 //  DocSpellFramework
 //
 //  Copyright (c) 2020 Anodized Software, Inc.
@@ -26,7 +26,7 @@
 import Foundation
 import SourceKittenFramework
 
-struct Element {
+struct SourceKitResponse {
 
     private var dictionary: [String: SourceKitRepresentable]
 
@@ -35,13 +35,13 @@ struct Element {
     }
 
     /// Substructure ([Element]).
-    var substructure: [Element]? {
+    var substructure: [SourceKitResponse]? {
         let d = dictionary["key.substructure"] as? [[String: SourceKitRepresentable]]
-        return d?.map { Element(dictionary: $0)}
+        return d?.map { SourceKitResponse(dictionary: $0)}
     }
 
-    /// Processed doc comment (String).
-    var docComment: String? {
+    /// Processed doc comment (String). This is only used when searching for documentation in the tree.
+    private var docComment: String? {
         return dictionary["key.doc.comment"] as? String
     }
 
@@ -63,12 +63,12 @@ struct Element {
         return ByteRange(location: location, length: length)
     }
 
-    func findDocumentation() -> [Element] {
-        let base: [Element] =
+    func findDocumentationRecursively() -> [SourceKitResponse] {
+        let base: [SourceKitResponse] =
             docComment != nil
                 ? [self]
                 : []
 
-        return base + (substructure?.flatMap({ $0.findDocumentation() }) ?? [])
+        return base + (substructure?.flatMap({ $0.findDocumentationRecursively() }) ?? [])
     }
 }

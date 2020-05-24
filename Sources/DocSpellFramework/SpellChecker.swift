@@ -63,11 +63,11 @@ public class SpellChecker {
             throw SpellCheckerError.noFilePath
         }
 
-        let elements = Element(dictionary: docs.docsDictionary).findDocumentation()
+        let elements = SourceKitResponse(dictionary: docs.docsDictionary).findDocumentationRecursively()
         return try spellCheck(elements: elements, inFileAtPath: path)
     }
 
-    private func spellCheck(elements: [Element], inFileAtPath path: String) throws -> [Misspelling] {
+    private func spellCheck(elements: [SourceKitResponse], inFileAtPath path: String) throws -> [Misspelling] {
         let fileData = try Data(contentsOf: URL(fileURLWithPath: path))
         guard let fileString =  String(data: fileData, encoding: .utf8) else {
             throw SpellCheckerError.encodingError
@@ -75,13 +75,13 @@ public class SpellChecker {
         return try spellCheck(elements: elements, inView: StringView(fileString), ofFileAtPath: path)
     }
 
-    private func spellCheck(elements: [Element], inView view: StringView, ofFileAtPath filePath: String) throws -> [Misspelling] {
+    private func spellCheck(elements: [SourceKitResponse], inView view: StringView, ofFileAtPath filePath: String) throws -> [Misspelling] {
         return try elements.flatMap {
             try spellCheck(element: $0, inView: view, ofFileAtPath: filePath)
         }
     }
 
-    private func spellCheck(element: Element, inView fileView: StringView, ofFileAtPath filePath: String) throws -> [Misspelling] {
+    private func spellCheck(element: SourceKitResponse, inView fileView: StringView, ofFileAtPath filePath: String) throws -> [Misspelling] {
         // SourceKit reports the byte range of the doc comment in the source file
         guard let docCommentByteRangeInSourceFile = element.docCommentByteRange else {
             throw SpellCheckerError.missingData
