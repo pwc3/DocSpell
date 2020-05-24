@@ -31,4 +31,16 @@ class TestFile1 {
     /// This is a multi-line doc string. It contains a mispelng.
     /// Here is a second line. It cntans two mispelngs.
     var foo: String?
+
+    /**
+     This is a multi-line doc string using a different commnt stle.
+     There are two mspelngs in the prvous line and two on this line.
+     */
+    var bar: Int?
+
+    /**
+     * This is a multi-line doc string with astrsks at the strt of the line.
+     * There are misspellings on oth lines.
+     */
+    var baz: Int?
 }

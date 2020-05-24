@@ -37,11 +37,27 @@ class DocSpellTests: XCTestCase {
 
         let misspellings = try spellChecker.run().get()
 
-        XCTAssertEqual(misspellings, [
-            Misspelling(word: "strng",    file: path, line: 28, column: 31),
-            Misspelling(word: "mispelng", file: path, line: 31, column: 56),
-            Misspelling(word: "cntans",   file: path, line: 32, column: 35),
-            Misspelling(word: "mispelngs", file: path, line: 32, column: 46)
-        ])
+        XCTAssertEqual(misspellings.count, 11)
+        check(misspellings, at:  0, isEqualTo: Misspelling(word: "strng",     file: path, line: 28, column: 31))
+        check(misspellings, at:  1, isEqualTo: Misspelling(word: "mispelng",  file: path, line: 31, column: 56))
+        check(misspellings, at:  2, isEqualTo: Misspelling(word: "cntans",    file: path, line: 32, column: 35))
+        check(misspellings, at:  3, isEqualTo: Misspelling(word: "mispelngs", file: path, line: 32, column: 46))
+        check(misspellings, at:  4, isEqualTo: Misspelling(word: "commnt",    file: path, line: 36, column: 56))
+        check(misspellings, at:  5, isEqualTo: Misspelling(word: "stle",      file: path, line: 36, column: 63))
+        check(misspellings, at:  6, isEqualTo: Misspelling(word: "mspelngs",  file: path, line: 37, column: 20))
+        check(misspellings, at:  7, isEqualTo: Misspelling(word: "prvous",    file: path, line: 37, column: 36))
+        check(misspellings, at:  8, isEqualTo: Misspelling(word: "astrsks",   file: path, line: 42, column: 45))
+        check(misspellings, at:  9, isEqualTo: Misspelling(word: "strt",      file: path, line: 42, column: 60))
+        check(misspellings, at: 10, isEqualTo: Misspelling(word: "oth",       file: path, line: 43, column: 34))
+    }
+
+    private func check(_ actualArray: [Misspelling], at index: Int, isEqualTo expected: Misspelling, file: StaticString = #file, line: UInt = #line) {
+        guard index < actualArray.count else {
+            XCTFail("Invalid index \(index) >= \(actualArray.count)", file: file, line: line)
+            return
+        }
+
+        let actual = actualArray[index]
+        XCTAssertEqual(expected, actual, file: file, line: line)
     }
 }
