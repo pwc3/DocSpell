@@ -38,10 +38,10 @@ class DocSpellTests: XCTestCase {
         let misspellings = try spellChecker.run().get()
 
         XCTAssertEqual(misspellings, [
-            Misspelling(misspelling: "strng", file: Fixture.path(for: "TestFile1.swift"), line: 28, column: 31),
-            Misspelling(misspelling: "mispelng", file: Fixture.path(for: "TestFile1.swift"), line: 31, column: 56),
-            Misspelling(misspelling: "cntans", file: Fixture.path(for: "TestFile1.swift"), line: 32, column: 35),
-            Misspelling(misspelling: "mispelng", file: Fixture.path(for: "TestFile1.swift"), line: 32, column: 46)
+            Misspelling(word: "strng",    file: path, line: 28, column: 31),
+            Misspelling(word: "mispelng", file: path, line: 31, column: 56),
+            Misspelling(word: "cntans",   file: path, line: 32, column: 35),
+            Misspelling(word: "mispelng", file: path, line: 32, column: 46)
         ])
     }
 }

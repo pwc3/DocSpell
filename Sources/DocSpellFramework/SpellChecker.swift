@@ -100,7 +100,7 @@ public class SpellChecker {
         return results.flatMap { result in
             return (0..<result.numberOfRanges).compactMap { index -> Misspelling? in
                 let range = result.range(at: index)
-                let misspelling = (rawDocCommentString as NSString).substring(with: range)
+                let word = (rawDocCommentString as NSString).substring(with: range)
 
                 guard let byteRangeOfMisspellingInDocComment = rawDocCommentView.NSRangeToByteRange(range) else {
                     return nil
@@ -112,7 +112,7 @@ public class SpellChecker {
                     return nil
                 }
 
-                return Misspelling(misspelling: misspelling,
+                return Misspelling(word: word,
                                    file: path,
                                    line: UInt(location.line),
                                    column: UInt(location.character))

@@ -28,7 +28,7 @@ import SourceKittenFramework
 
 public struct Misspelling: Equatable {
 
-    public var misspelling: String
+    public var word: String
 
     public var file: String
 
@@ -44,6 +44,6 @@ extension Misspelling {
     }
 
     public var message: String {
-        return "\(location): warning: Misspelling of \"\(misspelling)\""
+        return "\(location): warning: Misspelling of \"\(word)\""
     }
 }
