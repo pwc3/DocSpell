@@ -35,6 +35,9 @@ let package = Package(
         .library(
             name: "DocSpellFramework",
             targets: ["DocSpellFramework"]),
+        .library(
+            name: "DocSpellTestFramework",
+            targets: ["DocSpellTestFramework"]),
         .executable(
             name: "DocSpell",
             targets: ["DocSpellCLI"])
@@ -55,8 +58,11 @@ let package = Package(
                 .product(name: "ArgumentParser", package: "swift-argument-parser"),
                 "DocSpellFramework"
             ]),
+        .target(
+            name: "DocSpellTestFramework",
+            dependencies: ["DocSpellFramework"]),
         .testTarget(
             name: "DocSpellTests",
-            dependencies: ["DocSpellFramework"]),
+            dependencies: ["DocSpellFramework", "DocSpellTestFramework"]),
     ]
 )

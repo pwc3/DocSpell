@@ -1,6 +1,6 @@
 //
-//  SpellCheckDocumentation.swift
-//  DocSpellTests
+//  SpellCheckTestCase.swift
+//  DocSpellTestFramework
 //
 //  Copyright (c) 2020 Anodized Software, Inc.
 //
@@ -24,18 +24,23 @@
 //
 
 import DocSpellFramework
-import DocSpellTestFramework
 import Foundation
 import XCTest
 
-class SpellCheckDocumentation: SpellCheckTestCase {
+/// A test case to run the spell checker as part of a unit test. Emits test failures for each misspelling.
+open class SpellCheckTestCase: XCTestCase {
 
-    func test() throws {
-        let path = ((#file as NSString).appendingPathComponent("../../../") as NSString).standardizingPath
+    /// Spell check the documentation for the specified input.
+    public final func spellCheckDocumentation(_ input: Input, whitelist: Whitelist? = nil) throws {
+        print("Spell checking \(input)")
+        let spellChecker = SpellChecker(input: input, whitelist: whitelist)
 
-        let packages = ["DocSpellCLI", "DocSpellFramework", "DocSpellTestFramework"]
-        try packages.forEach {
-            try spellCheckDocumentation(.swiftPackage(name: $0, path: path, arguments: []))
+        let misspellings = try spellChecker.run()
+        for misspelling in misspellings {
+            recordFailure(withDescription: misspelling.word,
+                          inFile: misspelling.file,
+                          atLine: Int(misspelling.line),
+                          expected: true)
         }
     }
 }

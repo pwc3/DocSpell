@@ -29,15 +29,20 @@ import SourceKittenFramework
 /// Provides information about a misspelling found by the spell checker.
 public struct Misspelling: Equatable {
 
+    /// The misspelled word.
     public var word: String
 
+    /// The path of the source file containing the misspelling.
     public var file: String
 
+    /// The number of the line in the source file containing the misspelling.
     public var line: UInt
 
+    /// The column of the line in the source file indicating the start of the misspelling.
     public var column: UInt
 
-    public init(word: String, file: String, line: UInt, column: UInt) {
+    /// Creates a new `Misspelling` instance.
+    init(word: String, file: String, line: UInt, column: UInt) {
         self.word = word
         self.file = file
         self.line = line
@@ -47,16 +52,23 @@ public struct Misspelling: Equatable {
 
 extension Misspelling {
 
-    public var location: String {
-        return "\(file):\(line):\(column)"
-    }
-
+    /// Indicates the severity of a message.
     public enum Severity: String {
+
+        /// A warning message.
         case warning
+
+        /// An error message.
         case error
     }
 
+    /// Returns a string, suitable for printing, indicating the location, severity, and misspelling.
+    /// The format is recognized by Xcode when emitted as part of a Run Script Build Phase, allowing users to select a
+    /// message and see the the misspelled word in its source file.
+    ///
+    /// - parameter severity: The severity of the message.
+    /// - returns: The message string for this misspelling.
     public func message(_ severity: Severity = .warning) -> String {
-        return "\(location): \(severity): \(word)"
+        return "\(file):\(line):\(column): \(severity): \(word)"
     }
 }

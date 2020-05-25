@@ -25,29 +25,49 @@
 
 import Foundation
 
+/// Defines a list of words that are ignored when detected as misspellings by the spell checker.
 public struct Whitelist: Codable {
 
-    enum WhitelistError: Error {
+    /// Indicates a whitelist error.
+    public enum WhitelistError: Error {
+
+        /// Indicates that a filename with an invalid extension was provided.
         case invalidExtension
     }
 
+    /// The whitelisted words.
     public var words: [String]
 
+    /// Creates a new whitelist with the specified words.
     public init(words: [String]) {
         self.words = words
     }
 
+    /// Returns `true` if the specified word is contained in the whitelist, `false` otherwise. Note that the whitelist
+    /// is case-insensitive.
     public func contains(_ word: String) -> Bool {
         return words.first(where: {
             $0.compare(word, options: .caseInsensitive) == .orderedSame
         }) != nil
     }
 
+    /// Loads the whitelist at the specified path. Returns `nil` if a `nil` path is provided. Note that the filename
+    /// must end in `.json` or `.plist`. This is used to determine the format of the whitelist file.
+    ///
+    /// This function converts the path to a `URL` and passes it to the `load(from:)` function.
+    ///
+    /// - parameter path: The path of the whitelist file.
+    /// - returns: A whitelist object read from the specified file.
     public static func load(fromFile path: String?) throws -> Whitelist? {
         return try path.flatMap { try load(from: URL(fileURLWithPath: $0)) }
     }
 
-    public static func load(from url: URL) throws -> Whitelist? {
+    /// Loads the whitelist at the specified URL. Note that the URL's path extension must end in `.json` or `.plist`.
+    /// This is used to determine the format of the whitelist file.
+    ///
+    /// - parameter url: The URL of the whitelist file.
+    /// - returns: A `Whitelist` instance read from the specified file.
+    public static func load(from url: URL) throws -> Whitelist {
         switch url.pathExtension.lowercased() {
         case "json":
             return try JSONDecoder().decode(Whitelist.self, from: try Data(contentsOf: url))

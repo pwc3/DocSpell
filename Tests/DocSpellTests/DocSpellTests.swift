@@ -23,19 +23,22 @@
 //  DEALINGS IN THE SOFTWARE.
 //
 
-import DocSpellFramework
+@testable import DocSpellFramework
 import XCTest
 
 class DocSpellTests: XCTestCase {
+
+    /// Tests reading a test fixture file.
     func testReadFixture() {
-        XCTAssertNoThrow(try Fixture.contents(of: "TestFile1.swift"))
+        XCTAssertNoThrow(try Fixture.contents(ofFile: "TestFile1.swift"))
     }
 
-    func testDocFixture() throws {
+    /// Runs the spell checker on the `TestFile1.swift` test fixture.
+    func testCheckSpellingOfFixture() throws {
         let path = Fixture.path(for: "TestFile1.swift")
         let spellChecker = SpellChecker(input: .singleFiles(filenames: [path]), whitelist: Whitelist(words: ["whargarbl"]))
 
-        let misspellings = try spellChecker.run().get()
+        let misspellings = try spellChecker.run()
 
         XCTAssertEqual(misspellings.count, 11)
         check(misspellings, at:  0, isEqualTo: Misspelling(word: "strng",     file: path, line: 28, column: 31))
@@ -51,6 +54,15 @@ class DocSpellTests: XCTestCase {
         check(misspellings, at: 10, isEqualTo: Misspelling(word: "oth",       file: path, line: 43, column: 34))
     }
 
+    /// Utility to check misspellings. Checks that the misspelling at the specified index exists and is equal to the
+    /// expected misspelling. The file and line number of the call site are captured so failures are emitted from the
+    /// call site instead of from this function.
+    ///
+    /// - parameter actualArray: The array of misspellings returned by the spell checker.
+    /// - parameter index: The index, in `actualArray`, of the misspelling being checked.
+    /// - parameter expected: The expected misspelling.
+    /// - parameter file: The file of the call site.
+    /// - parameter line: The line number of the call site.
     private func check(_ actualArray: [Misspelling], at index: Int, isEqualTo expected: Misspelling, file: StaticString = #file, line: UInt = #line) {
         guard index < actualArray.count else {
             XCTFail("Invalid index \(index) >= \(actualArray.count)", file: file, line: line)

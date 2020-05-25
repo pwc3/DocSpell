@@ -25,21 +25,26 @@
 
 import Foundation
 
+/// Utility for accessing test fixtures in this directory.
 struct Fixture {
 
+    /// The URL of the `Fixtures` directory (i.e., this file's parent directory).
     static var directory: URL {
         URL(fileURLWithPath: #file).deletingLastPathComponent()
     }
 
+    /// Returns the URL for the fixture file with the specified name.
     static func url(for name: String) -> URL {
         return directory.appendingPathComponent(name)
     }
 
+    /// Returns the path for the fixture file with the specified name.
     static func path(for name: String) -> String {
         return url(for: name).path
     }
 
-    static func contents(of name: String) throws -> String {
+    /// Returns the String contents of the specified fixture file.
+    static func contents(ofFile name: String) throws -> String {
         return try String(contentsOf: url(for: name))
     }
 }

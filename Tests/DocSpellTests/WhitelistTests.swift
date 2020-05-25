@@ -29,10 +29,12 @@ import XCTest
 
 class WhitelistTests: XCTestCase {
 
+    /// Verifies that passing a `nil` filename results in a `nil` `Whitelist` instance.
     func testNil() throws {
         XCTAssertNil(try Whitelist.load(fromFile: nil))
     }
 
+    /// Verifies loading a `Whitelist` instance from a property list file.
     func testLoadPlist() throws {
         guard let whitelist = try Whitelist.load(fromFile: Fixture.path(for: "SampleWhitelist.plist")) else {
             XCTFail("Unexpected nil value")
@@ -47,6 +49,7 @@ class WhitelistTests: XCTestCase {
         XCTAssertFalse(whitelist.contains("fnord"))
     }
 
+    /// Verifies loading a `Whitelist` instance from a JSON file.
     func testLoadJson() throws {
         guard let whitelist = try Whitelist.load(fromFile: Fixture.path(for: "SampleWhitelist.json")) else {
             XCTFail("Unexpected nil value")
