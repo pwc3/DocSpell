@@ -55,7 +55,7 @@ struct Options: ParsableArguments {
 
     @Option(name: .shortAndLong,
             default: nil,
-            help: "Whitelist file (must have .plist or .json extension)")
+            help: "Whitelist file (must have .plist or .json extension).")
     var whitelist: String?
 }
 
@@ -76,11 +76,11 @@ struct SwiftPackage: Subcommand, ParsableCommand {
             help: "Path of the directory containing the Package.swift file.")
     var path: String
 
-    @Argument(help: "Additional arguments to pass to `swift build`.")
-    var arguments: [String]
-
     @OptionGroup()
     var options: Options
+
+    @Argument(help: "Additional arguments to pass to `swift build`.")
+    var arguments: [String]
 
     var input: Input {
         .swiftPackage(name: name, path: path, arguments: arguments)
@@ -104,23 +104,26 @@ struct XcodeBuild: Subcommand, ParsableCommand {
             help: "Path to run `xcodebuild` from.")
     var path: String
 
+    @OptionGroup()
+    var options: Options
+
     @Argument(help: "The arguments necessary to pass in to `xcodebuild` to build this module.")
     var arguments: [String]
 
     var input: Input {
         .xcodeBuild(name: name, path: path, arguments: arguments)
     }
-
-    @OptionGroup()
-    var options: Options
 }
 
-// MARK: - single-files subcommand
+// MARK: - individual-files subcommand
 
-struct SingleFiles: Subcommand, ParsableCommand {
+struct IndividualFiles: Subcommand, ParsableCommand {
 
     static var configuration = CommandConfiguration(
         abstract: "Runs the spell checker on individual Swift source files.")
+
+    @OptionGroup()
+    var options: Options
 
     @Argument(help: "The files to check.")
     var filenames: [String]
@@ -128,9 +131,6 @@ struct SingleFiles: Subcommand, ParsableCommand {
     var input: Input {
         .singleFiles(filenames: filenames)
     }
-
-    @OptionGroup()
-    var options: Options
 }
 
 // MARK: - Main command
@@ -140,7 +140,7 @@ struct DocSpell: ParsableCommand {
     static var configuration = CommandConfiguration(
         commandName: "DocSpell",
         abstract: "Spell check inline documentation",
-        subcommands: [SwiftPackage.self, XcodeBuild.self, SingleFiles.self])
+        subcommands: [SwiftPackage.self, XcodeBuild.self, IndividualFiles.self])
 
     /// A subcommand, when parsed, calls this function passing passing itself.
     static func run(_ command: Subcommand) throws {
