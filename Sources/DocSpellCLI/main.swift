@@ -47,11 +47,11 @@ struct DocSpell: ParsableCommand {
 
         switch spellChecker.run() {
         case .success(let misspellings):
-            let output = misspellings.map { $0.message }
+            let output = misspellings.map { $0.message() }
             print(output.joined(separator: "\n"))
 
         case .failure(let error):
-            fputs("DocSpell failed: \(error)", stderr)
+            fputs("DocSpell failed: \(error)\n", stderr)
         }
     }
 }

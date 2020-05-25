@@ -1,5 +1,5 @@
 //
-//  WhitelistTests.swift
+//  SpellCheckDocumentation.swift
 //  DocSpellTests
 //
 //  Copyright (c) 2020 Anodized Software, Inc.
@@ -27,37 +27,15 @@ import DocSpellFramework
 import Foundation
 import XCTest
 
-class WhitelistTests: XCTestCase {
+class SpellCheckDocumentation: XCTestCase {
 
-    func testNil() throws {
-        XCTAssertNil(try Whitelist.load(fromFile: nil))
-    }
+    func test() throws {
+        let path = ((#file as NSString).appendingPathComponent("../../../") as NSString).standardizingPath
+        let spellChecker = SpellChecker(input: .swiftPackage(name: "DocSpellFramework", path: path, arguments: []))
 
-    func testLoadPlist() throws {
-        guard let whitelist = try Whitelist.load(fromFile: Fixture.path(for: "SampleWhitelist.plist")) else {
-            XCTFail("Unexpected nil value")
-            return
+        let misspellings = try spellChecker.run().get()
+        for misspelling in misspellings {
+            recordFailure(withDescription: misspelling.word, inFile: misspelling.file, atLine: Int(misspelling.line), expected: true)
         }
-
-        XCTAssertEqual(whitelist.words, ["foo", "bar", "baz"])
-
-        XCTAssertTrue(whitelist.contains("FOO"))
-        XCTAssertTrue(whitelist.contains("bAr"))
-        XCTAssertTrue(whitelist.contains("baZ"))
-        XCTAssertFalse(whitelist.contains("fnord"))
-    }
-
-    func testLoadJson() throws {
-        guard let whitelist = try Whitelist.load(fromFile: Fixture.path(for: "SampleWhitelist.json")) else {
-            XCTFail("Unexpected nil value")
-            return
-        }
-
-        XCTAssertEqual(whitelist.words, ["foo", "bar", "baz"])
-
-        XCTAssertTrue(whitelist.contains("FOO"))
-        XCTAssertTrue(whitelist.contains("bAr"))
-        XCTAssertTrue(whitelist.contains("baZ"))
-        XCTAssertFalse(whitelist.contains("fnord"))
     }
 }

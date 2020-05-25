@@ -27,6 +27,7 @@ import AppKit
 import Foundation
 import SourceKittenFramework
 
+/// Checks the spelling of a set of Swift inputs. See the `SpellChecker.Input` enum for the supported set of inputs.
 public class SpellChecker {
 
     enum SpellCheckerError: Error {

@@ -26,6 +26,7 @@
 import Foundation
 import SourceKittenFramework
 
+/// Provides information about a misspelling found by the spell checker.
 public struct Misspelling: Equatable {
 
     public var word: String
@@ -50,7 +51,12 @@ extension Misspelling {
         return "\(file):\(line):\(column)"
     }
 
-    public var message: String {
-        return "\(location): warning: Misspelling of \"\(word)\""
+    public enum Severity: String {
+        case warning
+        case error
+    }
+
+    public func message(_ severity: Severity = .warning) -> String {
+        return "\(location): \(severity): \(word)"
     }
 }
